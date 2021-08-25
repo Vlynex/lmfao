@@ -1,0 +1,92 @@
+Imports Microsoft.Win32
+
+Public Class Main
+    Private Declare Ansi Function GetPrivateProfileString Lib "kernel32.dll" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Int32, ByVal lpFileName As String) As Int32
+    Private Declare Ansi Function WritePrivateProfileString Lib "kernel32.dll" Alias "WritePrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpString As String, ByVal lpFileName As String) As Int32
+
+    Public Function IniRead(ByVal strSection As String, ByVal strKey As String, ByVal strDefault As String, ByVal strFile As String) As String
+        Dim strTemp As String = Space(1024), lLength As Integer
+        lLength = GetPrivateProfileString(strSection, strKey, strDefault, strTemp, strTemp.Length, strFile)
+        Return (strTemp.Substring(0, lLength))
+    End Function
+
+    Public Function IniWrite(ByVal strSection As String, ByVal strKey As String, ByVal strValue As String, ByVal strFile As String) As Boolean
+        Return (Not (WritePrivateProfileString(strSection, strKey, strValue, strFile) = 0))
+    End Function
+
+    Public Sub GetHWIDs()
+        Try
+            Label2.Text = Registry.GetValue("HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\IDConfigDB\Hardware Profiles\0001", "HwProfileGuid", Nothing)
+            Label5.Text = Registry.GetValue("HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\IDConfigDB\Hardware Profiles\0001", "HwProfileGuid2", Nothing)
+        Catch : End Try
+    End Sub
+
+    Private Sub MainLoad(ByVal sender As System.Object, ByVal e As EventArgs) Handles MyBase.Load
+        GetHWIDs()
+    End Sub
+
+    Private Sub UpdateValues(ByVal sender As System.Object, ByVal e As EventArgs) Handles GetValue.Tick
+        GetHWIDs()
+    End Sub
+
+    Private Sub RndHWIDBtnClicked(ByVal sender As System.Object, ByVal e As EventArgs) Handles RndHWIDBtn.Click
+        Dim rn As New Random
+        Dim x As String = rn.Next(100000, 99999999)
+        TextBox1.Text = x
+        TextBox2.Text = x
+    End Sub
+
+    Private Sub ChangeBothBtnClicked(ByVal sender As System.Object, ByVal e As EventArgs) Handles ChangeBothBtn.Click
+        Registry.SetValue("HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\IDConfigDB\Hardware Profiles\0001", "HwProfileGuid", TextBox1.Text)
+        Registry.SetValue("HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\IDConfigDB\Hardware Profiles\0001", "HwProfileGuid2", TextBox2.Text)
+        MsgBox("Successfully changed!")
+    End Sub
+
+    Private Sub Change1BtnClicked(ByVal sender As System.Object, ByVal e As EventArgs) Handles Change1Btn.Click
+        If TextBox1.Text.Trim.Length > 0 Then
+            MsgBox("Please fill in a value.", MsgBoxStyle.Critical)
+        Else
+            Registry.SetValue("HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\IDConfigDB\Hardware Profiles\0001", "HwProfileGuid", TextBox1.Text)
+            MsgBox("Successfully changed!")
+        End If
+    End Sub
+
+    Private Sub Change2BtnClicked(ByVal sender As System.Object, ByVal e As EventArgs) Handles Change2Btn.Click
+        If TextBox1.Text.Trim.Length > 0 Then
+            MsgBox("Please fill in a value.", MsgBoxStyle.Critical)
+        Else
+            Registry.SetValue("HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\IDConfigDB\Hardware Profiles\0001", "HwProfileGuid2", TextBox2.Text)
+            MsgBox("Successfully changed!")
+        End If
+    End Sub
+
+    Private Sub Copy1BtnClicked(sender As Object, e As EventArgs) Handles Copy1Btn.Click
+        If Label2.Text.Trim.Length > 0 Then
+            My.Computer.Clipboard.SetText(Label2.Text)
+        End If
+    End Sub
+
+    Private Sub Copy2BtnClicked(sender As Object, e As EventArgs) Handles Copy2Btn.Click
+        If Label5.Text.Trim.Length > 0 Then
+            My.Computer.Clipboard.SetText(Label5.Text)
+        End If
+    End Sub
+
+    Private Sub LoadHWID(ByVal sender As System.Object, ByVal e As EventArgs) Handles LoadHWIDBtn.Click
+        Try
+            TextBox1.Text = IniRead("HWID", "Old1", "", "./HWID.ini")
+            TextBox2.Text = IniRead("HWID", "Old2", "", "./HWID.ini")
+        Catch : End Try
+    End Sub
+
+    Private Sub SaveHWID(sender As Object, e As EventArgs) Handles SaveHWIDBtn.Click
+        Try
+            IniWrite("HWID", "Old1", Label2.Text, "./HWID.ini")
+            IniWrite("HWID", "Old2", Label5.Text, "./HWID.ini")
+        Catch : End Try
+    End Sub
+
+    Private Sub LinkWebsiteClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkWebsite.LinkClicked
+        Process.Start("http://galaxyhacks.net/?ref=1")
+    End Sub
+End Class
